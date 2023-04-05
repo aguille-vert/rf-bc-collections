@@ -1,4 +1,180 @@
 import jmespath
+import requests
+
+def add_request_array_to_collection(request_array,
+                                          collection_id,
+                                          api_keys,
+                                          api_service
+                                          ):
+
+  
+  if len(request_array)<=1000:
+    r = put_request_array_to_collection(request_array,
+                                   collection_id,
+                                   api_keys,
+                                    api_service)
+  else:
+    n_batches = len(request_array)//1000
+    count = 0
+    n=1000
+    for _ in range(n_batches):
+      request_array_batch = request_array[count:count+n]
+      r = put_request_array_to_collection(request_array_batch,
+                                   collection_id,
+                                   api_keys,
+                                    api_service)
+      count+=n
+    # remainder
+    request_array_batch = request_array[count:]
+    r = put_request_array_to_collection(request_array_batch,
+                                   collection_id,
+                                   api_keys,
+                                    api_service)
+  return r
+
+
+def clear_collection(collection_id,
+                     api_service,
+                     api_keys):
+  api_key = api_keys[api_service]
+  
+  url=f"https://api.{api_service}api.com/collections/{collection_id}/clear?api_key={api_key}"
+  
+  return requests.delete(url)
+
+def create_array_of_rainforest_requests(request_type,
+                                        amz_domain,
+                                        items=None,
+                                        item_type = 'asin',
+                                        offer_ids=None):
+  
+  """
+  items: asins or gtins; item_type: asin or gtin
+  """
+
+  if request_type == 'product':
+    return [{"type": request_type,
+      "amazon_domain": amz_domain,
+      "offers_condition_new":"true",
+      item_type: i} for i in items]
+
+  if request_type == 'offers':
+    item_type='asin'
+    return [{"type": request_type,
+      "amazon_domain": amz_domain,
+      "offers_condition_new":"true",
+      "asin": i} for i in items]
+
+  if request_type == "stock_estimation":
+    error_message="lengths of asins and offer_ids should be equal"
+    assert len(items)==len(offer_ids), print(error_message)
+
+    return [{"type": request_type,
+      "amazon_domain": amz_domain, 
+      "asin": asin,
+      "offer_id" : offer_id} for asin, offer_id in zip(items,offer_ids)]
+
+def create_api_collection_from_(collection_name,
+                            destination_ids,
+                            api_keys,
+                          api_service,
+                            notification_email = None,
+                            schedule_type = None,
+                            schedule_hours=None,
+                            priority="normal"):
+  """
+  api_key, name and destination_ids are required Params
+  """
+
+  api_key = api_keys[api_service]
+  
+  if schedule_type:
+    body = {
+      "name": collection_name,
+      "enabled": True,
+      "schedule_type": schedule_type,
+      "priority": priority,
+      "schedule_hours": schedule_hours,
+      "destination_ids": destination_ids,
+      "notification_email": notification_email,
+      "notification_as_json": True
+    }
+  else:
+    body = {
+        "name": collection_name,
+        "destination_ids": destination_ids,
+        "notification_email": notification_email,
+        "notification_as_json": True
+    }
+  url = f'https://api.{api_service}api.com/collections?api_key={api_key}'
+  api_result = requests.post(url, json=body)
+
+  api_response = api_result.json()
+
+  return api_response
+
+def create_bluecart_request_array_from_(request_type,
+                              request_items,
+                              max_page=None
+                              ):
+  """
+  for type == 'search' request_items are strings, such as amz_titles
+  for type == 'product' request_items are wlm_item_ids, max_page=None
+  """
+  
+  if request_type == "search":
+    request_array =  [
+        {
+            "type": request_type,
+            "max_page": max_page, 
+            "search_term": i
+         } 
+      for i in request_items]
+
+  if request_type in ['product','offers']:
+        request_array =  [
+            {
+                "type": request_type,
+                "item_id": i
+             } 
+            for i in request_items]
+
+
+
+          
+  return request_array
+
+def create_array_of_rainforest_requests(request_type,
+                                        amz_domain,
+                                        items=None,
+                                        item_type = 'asin',
+                                        offer_ids=None):
+  
+  """
+  items: asins or gtins; item_type: asin or gtin
+  """
+
+  if request_type == 'product':
+    return [{"type": request_type,
+      "amazon_domain": amz_domain,
+      "offers_condition_new":"true",
+      item_type: i} for i in items]
+
+  if request_type == 'offers':
+    item_type='asin'
+    return [{"type": request_type,
+      "amazon_domain": amz_domain,
+      "offers_condition_new":"true",
+      "asin": i} for i in items]
+
+  if request_type == "stock_estimation":
+    error_message="lengths of asins and offer_ids should be equal"
+    assert len(items)==len(offer_ids), print(error_message)
+
+    return [{"type": request_type,
+      "amazon_domain": amz_domain, 
+      "asin": asin,
+      "offer_id" : offer_id} for asin, offer_id in zip(items,offer_ids)]
 
 
 def parse_amz_json_from_(data):
@@ -47,6 +223,34 @@ def parse_amz_json_from_(data):
     return res
   except:
     pass
+
+
+def put_request_array_to_collection(request_array,
+                                   collection_id,
+                                   api_keys,
+                                    api_service):
+  api_key = api_keys[api_service]
+  base = f"https://api.{api_service}api.com/collections"
+  url = f"{base}/{collection_id}?api_key={api_key}"
+  body = { 
+          "requests": request_array
+          }
+  api_result = requests.put(url, json=body)
+  return  api_result.json()
+
+def start_collection(collection_id,
+                                api_keys,
+                                api_service):
+  api_key = api_keys[api_service]
+  params = {
+    'api_key': api_key
+  }
+  base = f"https://api.{api_service}api.com/collections"
+  url = f"{base}/{collection_id}/start"
+
+  api_result = requests.get(url, params)
+
+  return api_result.json()
 
 cols = ['item_volume',
  'add_an_accessory',
