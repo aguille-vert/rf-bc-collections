@@ -42,37 +42,6 @@ def clear_collection(collection_id,
   
   return requests.delete(url)
 
-def create_array_of_rainforest_requests(request_type,
-                                        amz_domain,
-                                        items=None,
-                                        item_type = 'asin',
-                                        offer_ids=None):
-  
-  """
-  items: asins or gtins; item_type: asin or gtin
-  """
-
-  if request_type == 'product':
-    return [{"type": request_type,
-      "amazon_domain": amz_domain,
-      "offers_condition_new":"true",
-      item_type: i} for i in items]
-
-  if request_type == 'offers':
-    item_type='asin'
-    return [{"type": request_type,
-      "amazon_domain": amz_domain,
-      "offers_condition_new":"true",
-      "asin": i} for i in items]
-
-  if request_type == "stock_estimation":
-    error_message="lengths of asins and offer_ids should be equal"
-    assert len(items)==len(offer_ids), print(error_message)
-
-    return [{"type": request_type,
-      "amazon_domain": amz_domain, 
-      "asin": asin,
-      "offer_id" : offer_id} for asin, offer_id in zip(items,offer_ids)]
 
 def create_api_collection_from_(collection_name,
                             destination_ids,
@@ -113,37 +82,6 @@ def create_api_collection_from_(collection_name,
 
   return api_response
 
-def create_bluecart_request_array_from_(request_type,
-                              request_items,
-                              max_page=None
-                              ):
-  """
-  for type == 'search' request_items are strings, such as amz_titles
-  for type == 'product' request_items are wlm_item_ids, max_page=None
-  """
-  
-  if request_type == "search":
-    request_array =  [
-        {
-            "type": request_type,
-            "max_page": max_page, 
-            "search_term": i
-         } 
-      for i in request_items]
-
-  if request_type in ['product','offers']:
-        request_array =  [
-            {
-                "type": request_type,
-                "item_id": i
-             } 
-            for i in request_items]
-
-
-
-          
-  return request_array
-
 def create_array_of_rainforest_requests(request_type,
                                         amz_domain,
                                         items=None,
@@ -175,6 +113,46 @@ def create_array_of_rainforest_requests(request_type,
       "amazon_domain": amz_domain, 
       "asin": asin,
       "offer_id" : offer_id} for asin, offer_id in zip(items,offer_ids)]
+
+def create_bluecart_request_array_from_(request_type,
+                              request_items,
+                              max_page=None
+                              ):
+  """
+  for type == 'search' request_items are strings, such as amz_titles
+  for type == 'product' request_items are wlm_item_ids, max_page=None
+  """
+  
+  if request_type == "search":
+    request_array =  [
+        {
+            "type": request_type,
+            "max_page": max_page, 
+            "search_term": i
+         } 
+      for i in request_items]
+
+  if request_type in ['product','offers']:
+        request_array =  [
+            {
+                "type": request_type,
+                "item_id": i
+             } 
+            for i in request_items]
+
+
+
+          
+  return request_array
+
+def delete_collection_(collection_id,
+                                  api_keys,
+                                  api_service):
+  api_key = api_keys[api_service]
+  base=f"https://api.{api_service}api.com/collections"
+  url=f"{base}/{collection_id}?api_key={api_key}"
+  print(url)
+  return requests.delete(url)
 
 
 def parse_amz_json_from_(data):
