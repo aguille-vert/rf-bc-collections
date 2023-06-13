@@ -140,6 +140,15 @@ def create_bluecart_request_array_from_(request_type,
              } 
             for i in request_items]
 
+  if request_type == 'seller_profile':
+    request_array =  [
+            {
+                "type": request_type,
+                "seller_id": i
+             } 
+            for i in request_items]
+
+
 
 
           
