@@ -86,7 +86,8 @@ def create_array_of_rainforest_requests(request_type,
                                         amz_domain,
                                         items=None,
                                         item_type = 'asin',
-                                        offer_ids=None):
+                                        offer_ids=None,
+                                        search_terms = None):
   
   """
   items: asins or gtins; item_type: asin or gtin
@@ -108,6 +109,11 @@ def create_array_of_rainforest_requests(request_type,
   if request_type == "stock_estimation":
     error_message="lengths of asins and offer_ids should be equal"
     assert len(items)==len(offer_ids), print(error_message)
+
+  if request_type == 'search':
+    return [{"type" : request_type,
+            "amazon_domain" : amz_domain,
+            "search_term" : search_term} for search_term in search_terms]
 
     return [{"type": request_type,
       "amazon_domain": amz_domain, 
