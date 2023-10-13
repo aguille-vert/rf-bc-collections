@@ -87,7 +87,9 @@ def create_array_of_rainforest_requests(request_type,
                                         items=None,
                                         item_type = 'asin',
                                         offer_ids=None,
-                                        search_terms = None):
+                                        search_terms = None,
+                                        category_id=None,
+                                        num_pages=None):
   
   """
   items: asins or gtins; item_type: asin or gtin
@@ -114,6 +116,12 @@ def create_array_of_rainforest_requests(request_type,
     return [{"type" : request_type,
             "amazon_domain" : amz_domain,
             "search_term" : search_term} for search_term in search_terms]
+  
+  if request_type == 'category':
+    return[{"type" : request_type,
+            'category_id' : category_id,
+            'amazon_domain' : amazon_domain,
+            'page':page_num} for page_num in range(1,num_pages+1)]
 
     return [{"type": request_type,
       "amazon_domain": amz_domain, 
