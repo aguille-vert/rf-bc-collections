@@ -83,7 +83,7 @@ def create_api_collection_from_(collection_name,
   return api_response
 
 def create_array_of_rainforest_requests(request_type,
-                                        amz_domain,
+                                        amazon_domain,
                                         items=None,
                                         item_type = 'asin',
                                         offer_ids=None,
@@ -97,14 +97,14 @@ def create_array_of_rainforest_requests(request_type,
 
   if request_type == 'product':
     return [{"type": request_type,
-      "amazon_domain": amz_domain,
+      "amazon_domain": amazon_domain,
       "offers_condition_new":"true",
       item_type: i} for i in items]
 
   if request_type == 'offers':
     item_type='asin'
     return [{"type": request_type,
-      "amazon_domain": amz_domain,
+      "amazon_domain": amazon_domain,
       "offers_condition_new":"true",
       "asin": i} for i in items]
 
@@ -114,7 +114,7 @@ def create_array_of_rainforest_requests(request_type,
 
   if request_type == 'search':
     return [{"type" : request_type,
-            "amazon_domain" : amz_domain,
+            "amazon_domain" : amazon_domain,
             "search_term" : search_term} for search_term in search_terms]
   
   if request_type == 'category':
@@ -123,10 +123,10 @@ def create_array_of_rainforest_requests(request_type,
             'amazon_domain' : amazon_domain,
             'page':page_num} for page_num in range(1,num_pages+1)]
 
-    return [{"type": request_type,
-      "amazon_domain": amz_domain, 
-      "asin": asin,
-      "offer_id" : offer_id} for asin, offer_id in zip(items,offer_ids)]
+    # return [{"type": request_type,
+    #   "amazon_domain": amazon_domain, 
+    #   "asin": asin,
+    #   "offer_id" : offer_id} for asin, offer_id in zip(items,offer_ids)]
 
 def create_bluecart_request_array_from_(request_type,
                               request_items,
